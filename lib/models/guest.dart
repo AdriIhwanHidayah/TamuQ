@@ -2,23 +2,22 @@ import 'package:hive/hive.dart';
 
 part 'guest.g.dart';
 
-
 @HiveType(typeId: 0)
 class Guest extends HiveObject {
   @HiveField(0)
-  String name;
+  String name; // Nama lengkap tamu
 
   @HiveField(1)
-  String purpose;
+  String purpose; // Keperluan kunjungan
 
   @HiveField(2)
-  String phone;
+  String phone; // Nomor telepon
 
   @HiveField(3)
-  String origin;
+  String origin; // Instansi/Organisasi
 
   @HiveField(4)
-  DateTime timestamp;
+  DateTime timestamp; // Waktu kunjungan
 
   Guest({
     required this.name,

@@ -11,32 +11,72 @@ class HistoryScreen extends StatelessWidget {
     final guests = Provider.of<GuestProvider>(context).guests;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Riwayat")),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: guests.length,
-        itemBuilder: (context, index) {
-          final guest = guests[index];
-          return Card(
-            child: ListTile(
-              title: Text(guest.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(guest.purpose),
-                  Text(DateFormat('dd, MMM yyyy, hh:mm a').format(guest.timestamp)),
-                ],
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  Provider.of<GuestProvider>(context, listen: false).removeGuest(guest);
-                },
-              ),
-            ),
-          );
-        },
+      backgroundColor: const Color(0xFFF4F6FA),
+      appBar: AppBar(
+        title: const Text("Riwayat Kunjungan"),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 1,
       ),
+      body: guests.isEmpty
+          ? const Center(child: Text("Belum ada data tamu."))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: guests.length,
+              itemBuilder: (context, index) {
+                final guest = guests[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      )
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.person, size: 32, color: Colors.blue),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              guest.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            if (guest.origin.isNotEmpty)
+                              Text(
+                                guest.origin,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            const SizedBox(height: 4),
+                            Text("📞 ${guest.phone.isEmpty ? '-' : guest.phone}"),
+                            Text("📝 ${guest.purpose}"),
+                            Text(
+                              "🕒 ${DateFormat('dd MMM yyyy, HH:mm').format(guest.timestamp)}",
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // 🚫 Tidak ada tombol hapus di sini
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }
