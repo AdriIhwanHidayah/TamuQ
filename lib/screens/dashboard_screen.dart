@@ -55,7 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Dashboard Kunjungan'),
         centerTitle: true,
-        backgroundColor: Colors.teal,
+        backgroundColor: const Color.fromARGB(255, 13, 22, 202),
         foregroundColor: Colors.white,
       ),
       body: Padding(

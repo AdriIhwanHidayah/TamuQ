@@ -30,27 +30,99 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Daftar Admin")),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: "Username"),
+      body: Stack(
+        children: [
+          // Background image
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/images/background.jpeg', // Pastikan gambar ini tersedia
+              fit: BoxFit.cover,
             ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
+          ),
+          // Centered content
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.lock, size: 60, color: Color.fromARGB(255, 231, 237, 243)),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Daftar Admin",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 246, 248, 249),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Masukkan data untuk mendaftar.",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color.fromARGB(255, 250, 247, 247),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _usernameController,
+                          decoration: InputDecoration(
+                            labelText: "Username",
+                            prefixIcon: const Icon(Icons.person),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: const Icon(Icons.lock),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _register,
+                            icon: const Icon(Icons.save, color: Colors.black),
+                            label: const Text(
+                              "Simpan",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor: const Color.fromARGB(255, 19, 126, 214),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text("Daftar"),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

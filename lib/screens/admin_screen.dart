@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 import 'package:printing/printing.dart';
 
 import '../models/guest.dart';
@@ -24,7 +24,6 @@ class _AdminScreenState extends State<AdminScreen> {
   DateTime? _endDate;
 
   final String baseUrl = 'http://localhost:3000';
- // Ganti IP jika di emulator/device
 
   @override
   void initState() {
@@ -36,22 +35,12 @@ class _AdminScreenState extends State<AdminScreen> {
   Future<void> _fetchGuests() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/guest'));
-
-      print('🔍 Status Code: ${response.statusCode}');
-      print('📦 Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-
-        if (data.isEmpty) {
-          print('📭 Data tamu kosong.');
-        }
-
         _allGuests = data.map((e) {
           try {
             return Guest.fromJson(e);
           } catch (err) {
-            print('❌ Parsing error: $err');
             return Guest(
               id: '',
               name: 'Invalid Data',
@@ -62,10 +51,7 @@ class _AdminScreenState extends State<AdminScreen> {
             );
           }
         }).toList();
-
         _applyFilters();
-      } else {
-        throw Exception('Gagal memuat data (status ${response.statusCode})');
       }
     } catch (e) {
       print('❌ Error saat ambil data tamu: $e');
@@ -89,7 +75,6 @@ class _AdminScreenState extends State<AdminScreen> {
 
   void _applyFilters() {
     final query = _searchController.text.toLowerCase();
-
     setState(() {
       _filteredGuests = _allGuests.where((guest) {
         final matchesSearch = guest.name.toLowerCase().contains(query) ||
@@ -142,82 +127,105 @@ class _AdminScreenState extends State<AdminScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Panel Admin'),
-        centerTitle: true,
-        backgroundColor: Colors.indigo.shade600,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            tooltip: 'Export PDF',
-            onPressed: _filteredGuests.isEmpty ? null : _exportToPdf,
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            tooltip: 'Lihat Dashboard',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const DashboardScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Cari nama atau keperluan...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+          // ✅ Background image
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/images/background.jpeg',
+              fit: BoxFit.cover,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _pickDateRange,
-                  icon: const Icon(Icons.date_range),
-                  label: const Text('Pilih Tanggal'),
-                ),
-                const SizedBox(width: 12),
-                if (_startDate != null && _endDate != null)
-                  Expanded(
-                    child: Text(
-                      'Filter: ${DateFormat('dd/MM/yyyy').format(_startDate!)} - ${DateFormat('dd/MM/yyyy').format(_endDate!)}',
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                if (_startDate != null && _endDate != null)
+          Column(
+            children: [
+              AppBar(
+                title: const Text('Panel Admin'),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                actions: [
                   IconButton(
-                    icon: const Icon(Icons.clear),
-                    tooltip: 'Reset Filter',
-                    onPressed: _resetDateFilter,
+                    icon: const Icon(Icons.picture_as_pdf),
+                    tooltip: 'Export PDF',
+                    onPressed: _filteredGuests.isEmpty ? null : _exportToPdf,
                   ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _filteredGuests.isEmpty
-                ? const Center(child: Text('Tidak ada hasil ditemukan.'))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: _filteredGuests.length,
-                    itemBuilder: (context, index) {
-                      final guest = _filteredGuests[index];
-                      return AdminGuestCard(
-                        guest: guest,
-                        onDelete: () => _deleteGuest(guest.id ?? ''),
+                  IconButton(
+                    icon: const Icon(Icons.bar_chart),
+                    tooltip: 'Lihat Dashboard',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const DashboardScreen()),
                       );
                     },
                   ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    hintText: 'Cari nama atau keperluan...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pickDateRange,
+                      icon: const Icon(Icons.date_range),
+                      label: const Text('Pilih Tanggal'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 15, 86, 239),
+                        foregroundColor: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (_startDate != null && _endDate != null)
+                      Expanded(
+                        child: Text(
+                          'Filter: ${DateFormat('dd/MM/yyyy').format(_startDate!)} - ${DateFormat('dd/MM/yyyy').format(_endDate!)}',
+                          style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.white),
+                        ),
+                      ),
+                    if (_startDate != null && _endDate != null)
+                      IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white),
+                        tooltip: 'Reset Filter',
+                        onPressed: _resetDateFilter,
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: _filteredGuests.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Tidak ada hasil ditemukan.',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: _filteredGuests.length,
+                        itemBuilder: (context, index) {
+                          final guest = _filteredGuests[index];
+                          return AdminGuestCard(
+                            guest: guest,
+                            onDelete: () => _deleteGuest(guest.id ?? ''),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
         ],
       ),
@@ -240,6 +248,7 @@ class AdminGuestCard extends StatelessWidget {
     final dateFormatted = DateFormat('dd MMM yyyy • HH:mm').format(guest.timestamp);
 
     return Card(
+      color: Colors.white.withOpacity(0.9),
       elevation: 3,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

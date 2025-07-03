@@ -20,7 +20,7 @@ class _FormScreenState extends State<FormScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final url = Uri.parse('http://127.0.0.1:3000/guest'); // Ganti IP jika pakai emulator
+      final url = Uri.parse('http://10.0.2.2:3000/guest');
 
       final guestData = {
         "id": DateTime.now().millisecondsSinceEpoch.toString(),
@@ -72,86 +72,118 @@ class _FormScreenState extends State<FormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
-      appBar: AppBar(
-        title: const Text("Buku Tamu"),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 1,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+      body: Stack(
+        children: [
+          // ✅ Background image
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/images/background.jpeg',
+              fit: BoxFit.cover,
+            ),
           ),
-          child: Form(
-            key: _formKey,
+          // ✅ Overlay form content
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             child: Column(
               children: [
-                const Text("Form Buku Tamu", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Nama Lengkap",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: "Nomor Telepon",
-                    border: OutlineInputBorder(),
+                const SizedBox(height: 20),
+                const Text(
+                  "Form Buku Tamu",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [Shadow(blurRadius: 4, color: Colors.black)],
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _orgController,
-                  decoration: const InputDecoration(
-                    labelText: "Organisasi / Instansi",
-                    border: OutlineInputBorder(),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _purposeController,
-                  decoration: const InputDecoration(
-                    labelText: "Keperluan",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
-                ),
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(child: Text(DateFormat('dd MMM yyyy').format(selectedDate))),
-                    ElevatedButton(
-                      onPressed: _pickDate,
-                      child: const Text("Pilih Tanggal"),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: "Nama Lengkap",
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _phoneController,
+                          decoration: const InputDecoration(
+                            labelText: "Nomor Telepon",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _orgController,
+                          decoration: const InputDecoration(
+                            labelText: "Organisasi / Instansi",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _purposeController,
+                          decoration: const InputDecoration(
+                            labelText: "Keperluan",
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                DateFormat('dd MMM yyyy').format(selectedDate),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: _pickDate,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                              ),
+                              child: const Text("Pilih Tanggal", style: TextStyle(color: Colors.black)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "SUBMIT",
+                              style: TextStyle(color: Colors.black, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                ElevatedButton(
-                  onPressed: _submit,
-                  child: const Text("SUBMIT"),
+                  ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
