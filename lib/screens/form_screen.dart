@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../models/guest.dart';
-import '../providers/guest_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
@@ -19,25 +18,44 @@ class _FormScreenState extends State<FormScreen> {
   final _purposeController = TextEditingController();
   DateTime selectedDate = DateTime.now();
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final guest = Guest(
-        name: _nameController.text,
-        phone: _phoneController.text,
-        origin: _orgController.text,
-        purpose: _purposeController.text,
-        timestamp: selectedDate,
-      );
-      Provider.of<GuestProvider>(context, listen: false).addGuest(guest);
+      final url = Uri.parse('http://127.0.0.1:3000/guest'); // Ganti IP jika pakai emulator
 
-      _nameController.clear();
-      _phoneController.clear();
-      _orgController.clear();
-      _purposeController.clear();
+      final guestData = {
+        "id": DateTime.now().millisecondsSinceEpoch.toString(),
+        "name": _nameController.text,
+        "phone": _phoneController.text,
+        "origin": _orgController.text,
+        "purpose": _purposeController.text,
+        "timestamp": selectedDate.toIso8601String()
+      };
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data berhasil disimpan")),
-      );
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(guestData),
+        );
+
+        if (response.statusCode == 200) {
+          _nameController.clear();
+          _phoneController.clear();
+          _orgController.clear();
+          _purposeController.clear();
+          setState(() => selectedDate = DateTime.now());
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Data berhasil dikirim")),
+          );
+        } else {
+          throw Exception('Gagal: ${response.body}');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
     }
   }
 
@@ -48,9 +66,7 @@ class _FormScreenState extends State<FormScreen> {
       firstDate: DateTime(2023),
       lastDate: DateTime(2035),
     );
-    if (date != null) {
-      setState(() => selectedDate = date);
-    }
+    if (date != null) setState(() => selectedDate = date);
   }
 
   @override
@@ -75,113 +91,63 @@ class _FormScreenState extends State<FormScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
-                  child: Text(
-                    "Form Buku Tamu",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                const Text("Form Buku Tamu", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
 
-                // Nama Lengkap
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: "Nama Lengkap",
-                    hintText: "Masukkan nama lengkap",
-                    filled: true,
-                    fillColor: Color(0xFFF1F4F8),
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
                 ),
                 const SizedBox(height: 16),
 
-                // No Telepon
                 TextFormField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
                     labelText: "Nomor Telepon",
-                    hintText: "Masukkan nomor telepon (opsional)",
-                    filled: true,
-                    fillColor: Color(0xFFF1F4F8),
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Organisasi
                 TextFormField(
                   controller: _orgController,
                   decoration: const InputDecoration(
                     labelText: "Organisasi / Instansi",
-                    hintText: "Masukkan nama organisasi (opsional)",
-                    filled: true,
-                    fillColor: Color(0xFFF1F4F8),
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Keperluan
                 TextFormField(
                   controller: _purposeController,
-                  maxLines: 2,
                   decoration: const InputDecoration(
                     labelText: "Keperluan",
-                    hintText: "Masukkan keperluan",
-                    filled: true,
-                    fillColor: Color(0xFFF1F4F8),
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) => value!.isEmpty ? "Wajib diisi" : null,
                 ),
                 const SizedBox(height: 16),
 
-                // Tanggal
                 Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        DateFormat('dd MMM yyyy').format(selectedDate),
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                      ),
-                      icon: const Icon(Icons.calendar_today, size: 18),
-                      label: const Text("Pilih Tanggal"),
+                    Expanded(child: Text(DateFormat('dd MMM yyyy').format(selectedDate))),
+                    ElevatedButton(
                       onPressed: _pickDate,
-                    )
+                      child: const Text("Pilih Tanggal"),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // Submit
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: _submit,
-                    child: const Text(
-                      "SUBMIT",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                )
+                ElevatedButton(
+                  onPressed: _submit,
+                  child: const Text("SUBMIT"),
+                ),
               ],
             ),
           ),

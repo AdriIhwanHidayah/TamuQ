@@ -1,0 +1,26 @@
+[
+  {
+    "id": "abc123",
+    "name": "John",
+    "phone": "081234",
+    "origin": "PT ABC",
+    "purpose": "Meeting",
+    "timestamp": "2025-07-02T10:00:00Z"
+  },
+  {
+    "id": "1751530491497",
+    "name": "adri",
+    "phone": "08152",
+    "origin": "bos",
+    "purpose": "kerja",
+    "timestamp": "2025-07-03T15:14:35.047"
+  },
+  {
+    "id": "1751556893251",
+    "name": "alif",
+    "phone": "123213",
+    "origin": "dssd",
+    "purpose": "fewf",
+    "timestamp": "2025-07-03T22:34:40.576"
+  }
+]

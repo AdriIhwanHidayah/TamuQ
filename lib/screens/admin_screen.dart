@@ -1,12 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:printing/printing.dart';
 
 import '../models/guest.dart';
-import '../providers/guest_provider.dart';
 import '../services/pdf_service.dart';
-import 'dashboard_screen.dart'; // 👈 pastikan path benar
+import 'dashboard_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -17,31 +17,62 @@ class AdminScreen extends StatefulWidget {
 
 class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _searchController = TextEditingController();
+  List<Guest> _allGuests = [];
   List<Guest> _filteredGuests = [];
 
   DateTime? _startDate;
   DateTime? _endDate;
 
+  final String baseUrl = 'http://10.0.2.2:3000';
+ // Ganti IP jika di emulator/device
+
   @override
   void initState() {
     super.initState();
-    final guests = context.read<GuestProvider>().guests;
-    _filteredGuests = guests;
+    _fetchGuests();
     _searchController.addListener(_applyFilters);
+  }
+
+  Future<void> _fetchGuests() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/guest'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        _allGuests = data.map((e) => Guest.fromJson(e)).toList();
+        _applyFilters();
+      } else {
+        throw Exception('Gagal memuat data');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> _deleteGuest(String id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/guest/$id'));
+      if (response.statusCode == 200) {
+        _allGuests.removeWhere((g) => g.id == id);
+        _applyFilters();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data tamu dihapus')),
+        );
+      }
+    } catch (e) {
+      print('Error saat delete: $e');
+    }
   }
 
   void _applyFilters() {
     final query = _searchController.text.toLowerCase();
-    final guests = context.read<GuestProvider>().guests;
 
     setState(() {
-      _filteredGuests = guests.where((guest) {
+      _filteredGuests = _allGuests.where((guest) {
         final matchesSearch = guest.name.toLowerCase().contains(query) ||
             guest.purpose.toLowerCase().contains(query);
-
         final matchesDate = (_startDate == null || guest.timestamp.isAfter(_startDate!.subtract(const Duration(days: 1)))) &&
             (_endDate == null || guest.timestamp.isBefore(_endDate!.add(const Duration(days: 1))));
-
         return matchesSearch && matchesDate;
       }).toList();
     });
@@ -87,8 +118,6 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final guestProvider = Provider.of<GuestProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Panel Admin'),
@@ -115,7 +144,6 @@ class _AdminScreenState extends State<AdminScreen> {
       ),
       body: Column(
         children: [
-          // 🔎 Search Bar
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -127,8 +155,6 @@ class _AdminScreenState extends State<AdminScreen> {
               ),
             ),
           ),
-
-          // 🗓️ Date Filter
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
@@ -155,8 +181,6 @@ class _AdminScreenState extends State<AdminScreen> {
               ],
             ),
           ),
-
-          // 📋 Daftar tamu
           Expanded(
             child: _filteredGuests.isEmpty
                 ? const Center(child: Text('Tidak ada hasil ditemukan.'))
@@ -167,13 +191,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       final guest = _filteredGuests[index];
                       return AdminGuestCard(
                         guest: guest,
-                        onDelete: () {
-                          guestProvider.removeGuest(guest);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Data tamu dihapus')),
-                          );
-                          _applyFilters();
-                        },
+                        onDelete: () => _deleteGuest(guest.id ?? ''),
                       );
                     },
                   ),
@@ -207,7 +225,6 @@ class AdminGuestCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Nama dan tombol hapus
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -224,7 +241,6 @@ class AdminGuestCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-
             Row(
               children: [
                 const Icon(Icons.work_outline, size: 16),

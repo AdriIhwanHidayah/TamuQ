@@ -1,29 +1,39 @@
-import 'package:hive/hive.dart';
-
-part 'guest.g.dart';
-
-@HiveType(typeId: 0)
-class Guest extends HiveObject {
-  @HiveField(0)
-  String name; // Nama lengkap tamu
-
-  @HiveField(1)
-  String purpose; // Keperluan kunjungan
-
-  @HiveField(2)
-  String phone; // Nomor telepon
-
-  @HiveField(3)
-  String origin; // Instansi/Organisasi
-
-  @HiveField(4)
-  DateTime timestamp; // Waktu kunjungan
+class Guest {
+  final String? id;
+  final String name;
+  final String phone;
+  final String origin;
+  final String purpose;
+  final DateTime timestamp;
 
   Guest({
+    this.id,
     required this.name,
+    required this.phone,
+    required this.origin,
     required this.purpose,
-    this.phone = '',
-    this.origin = '',
     required this.timestamp,
   });
+
+  factory Guest.fromJson(Map<String, dynamic> json) {
+    return Guest(
+      id: json['id'],
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      origin: json['origin'] ?? '',
+      purpose: json['purpose'] ?? '',
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'phone': phone,
+      'origin': origin,
+      'purpose': purpose,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
 }

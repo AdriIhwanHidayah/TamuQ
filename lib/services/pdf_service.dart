@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../models/guest.dart';
+import '../models/guest.dart'; // pastikan ini ditambahkan
 
 class PdfService {
   static Future<Uint8List> generateGuestPdf(List<Guest> guests) async {
@@ -11,7 +11,10 @@ class PdfService {
     pdf.addPage(
       pw.MultiPage(
         build: (context) => [
-          pw.Text('Laporan Buku Tamu', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Laporan Buku Tamu',
+            style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 12),
           pw.Table.fromTextArray(
             border: null,
