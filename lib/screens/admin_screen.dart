@@ -23,7 +23,7 @@ class _AdminScreenState extends State<AdminScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  final String baseUrl = 'http://10.0.2.2:3000';
+  final String baseUrl = 'http://localhost:3000';
  // Ganti IP jika di emulator/device
 
   @override
@@ -37,15 +37,38 @@ class _AdminScreenState extends State<AdminScreen> {
     try {
       final response = await http.get(Uri.parse('$baseUrl/guest'));
 
+      print('🔍 Status Code: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        _allGuests = data.map((e) => Guest.fromJson(e)).toList();
+
+        if (data.isEmpty) {
+          print('📭 Data tamu kosong.');
+        }
+
+        _allGuests = data.map((e) {
+          try {
+            return Guest.fromJson(e);
+          } catch (err) {
+            print('❌ Parsing error: $err');
+            return Guest(
+              id: '',
+              name: 'Invalid Data',
+              phone: '',
+              origin: '',
+              purpose: '',
+              timestamp: DateTime.now(),
+            );
+          }
+        }).toList();
+
         _applyFilters();
       } else {
-        throw Exception('Gagal memuat data');
+        throw Exception('Gagal memuat data (status ${response.statusCode})');
       }
     } catch (e) {
-      print('Error: $e');
+      print('❌ Error saat ambil data tamu: $e');
     }
   }
 
