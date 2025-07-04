@@ -22,7 +22,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> fetchGuestData() async {
-    final url = Uri.parse('http://127.0.0.1:3000/guest'); // Ubah ke IP lokal jika pakai emulator/device
+    final url = Uri.parse('http://10.0.2.2:3000/guest');
+    // Ubah ke IP lokal jika pakai emulator/device
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -30,12 +31,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final Map<String, int> tempVisit = {};
 
         for (var item in data) {
-          final dateKey = DateFormat('dd/MM').format(DateTime.parse(item['timestamp']));
+          final dateKey = DateFormat(
+            'dd/MM',
+          ).format(DateTime.parse(item['timestamp']));
           tempVisit[dateKey] = (tempVisit[dateKey] ?? 0) + 1;
         }
 
-        final keys = tempVisit.keys.toList()
-          ..sort((a, b) => DateFormat('dd/MM').parse(a).compareTo(DateFormat('dd/MM').parse(b)));
+        final keys =
+            tempVisit.keys.toList()..sort(
+              (a, b) => DateFormat(
+                'dd/MM',
+              ).parse(a).compareTo(DateFormat('dd/MM').parse(b)),
+            );
 
         setState(() {
           visitPerDay = tempVisit;
@@ -68,51 +75,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: visitPerDay.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : BarChart(
-                      BarChartData(
-                        alignment: BarChartAlignment.spaceAround,
-                        barTouchData: BarTouchData(enabled: true),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 28,
-                              interval: 1,
-                              getTitlesWidget: (value, meta) => Text(value.toInt().toString()),
+              child:
+                  visitPerDay.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : BarChart(
+                        BarChartData(
+                          alignment: BarChartAlignment.spaceAround,
+                          barTouchData: BarTouchData(enabled: true),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 28,
+                                interval: 1,
+                                getTitlesWidget:
+                                    (value, meta) =>
+                                        Text(value.toInt().toString()),
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  final index = value.toInt();
+                                  if (index < 0 || index >= sortedKeys.length)
+                                    return const Text('');
+                                  return Text(
+                                    sortedKeys[index],
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                final index = value.toInt();
-                                if (index < 0 || index >= sortedKeys.length) return const Text('');
-                                return Text(
-                                  sortedKeys[index],
-                                  style: const TextStyle(fontSize: 10),
-                                );
-                              },
-                            ),
-                          ),
-                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          borderData: FlBorderData(show: false),
+                          barGroups: List.generate(sortedKeys.length, (index) {
+                            final key = sortedKeys[index];
+                            final count = visitPerDay[key]!;
+                            return BarChartGroupData(
+                              x: index,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: count.toDouble(),
+                                  width: 18,
+                                  color: Colors.teal,
+                                ),
+                              ],
+                            );
+                          }),
+                          gridData: FlGridData(show: false),
                         ),
-                        borderData: FlBorderData(show: false),
-                        barGroups: List.generate(sortedKeys.length, (index) {
-                          final key = sortedKeys[index];
-                          final count = visitPerDay[key]!;
-                          return BarChartGroupData(
-                            x: index,
-                            barRods: [
-                              BarChartRodData(toY: count.toDouble(), width: 18, color: Colors.teal),
-                            ],
-                          );
-                        }),
-                        gridData: FlGridData(show: false),
                       ),
-                    ),
             ),
           ],
         ),

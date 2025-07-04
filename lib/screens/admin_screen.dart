@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data'; // ✅ WAJIB: untuk Uint8List
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:printing/printing.dart';
+import 'package:path_provider/path_provider.dart'; // ✅ WAJIB: untuk getDownloadsDirectory()
 
 import '../models/guest.dart';
 import '../services/pdf_service.dart';
 import 'dashboard_screen.dart';
+
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -23,7 +27,7 @@ class _AdminScreenState extends State<AdminScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'http://10.0.2.2:3000';
 
   @override
   void initState() {
@@ -79,8 +83,14 @@ class _AdminScreenState extends State<AdminScreen> {
       _filteredGuests = _allGuests.where((guest) {
         final matchesSearch = guest.name.toLowerCase().contains(query) ||
             guest.purpose.toLowerCase().contains(query);
-        final matchesDate = (_startDate == null || guest.timestamp.isAfter(_startDate!.subtract(const Duration(days: 1)))) &&
-            (_endDate == null || guest.timestamp.isBefore(_endDate!.add(const Duration(days: 1))));
+
+        final matchesDate = (_startDate == null && _endDate == null)
+            ? true
+            : (_startDate != null && _endDate != null)
+                ? guest.timestamp.isAfter(_startDate!.subtract(const Duration(seconds: 1))) &&
+                    guest.timestamp.isBefore(_endDate!.add(const Duration(days: 1)))
+                : true;
+
         return matchesSearch && matchesDate;
       }).toList();
     });
@@ -91,9 +101,8 @@ class _AdminScreenState extends State<AdminScreen> {
       context: context,
       firstDate: DateTime(2023),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      initialDateRange: _startDate != null && _endDate != null
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : null,
+      initialDateRange:
+          _startDate != null && _endDate != null ? DateTimeRange(start: _startDate!, end: _endDate!) : null,
     );
 
     if (picked != null) {
@@ -116,6 +125,22 @@ class _AdminScreenState extends State<AdminScreen> {
   void _exportToPdf() async {
     final pdfData = await PdfService.generateGuestPdf(_filteredGuests);
     await Printing.layoutPdf(onLayout: (format) => pdfData);
+    await _savePdfToDownloads(pdfData);
+  }
+
+  Future<void> _savePdfToDownloads(Uint8List pdfData) async {
+    try {
+      final directory = await getDownloadsDirectory();
+      final filePath = '${directory!.path}/guest_list.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(pdfData);
+      print('✅ PDF saved at: $filePath');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('PDF berhasil disimpan di: $filePath')),
+      );
+    } catch (e) {
+      print('❌ Gagal menyimpan PDF: $e');
+    }
   }
 
   @override
@@ -129,7 +154,6 @@ class _AdminScreenState extends State<AdminScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // ✅ Background image
           SizedBox.expand(
             child: Image.asset(
               'assets/images/background.jpeg',
